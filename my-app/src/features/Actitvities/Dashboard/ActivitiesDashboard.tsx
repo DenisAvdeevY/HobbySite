@@ -1,40 +1,37 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import { styled } from '@mui/material/styles';
-import { List } from '@mui/material';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import Box from '@mui/material/Box';
-import {Activity} from '../../../app/models/activity';
 import ActivityList from './ActivityList';
 import ActivityDetails from '../details/ActivityDetails';
 import Container from '@mui/material/Container'
 import ActivityForm from '../from/ActivityForm';
-interface Props {
-	activities: Activity[];
-	selectedActivity: Activity | undefined;
-	selectActivity: (id: string) => void;
-	cancelSelectActivity: () => void;
-	editMode: boolean;
-	openForm: (id: string) => void;
-	closeForm: () => void;
-	createOrEdit: (activity: Activity) => void;
-}
+import { useStore } from '../../../app/stores/store';
+import { observer } from 'mobx-react-lite';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
 
+export default observer ( function ActivityDashboard(){
 
-export default function ActivityDashboard({activities, selectedActivity, selectActivity, cancelSelectActivity,editMode,openForm, closeForm, createOrEdit}: Props){
+	const {activityStore} = useStore();
+	const {selectedActivity, editMode, loadActivities, activityRegistry} = activityStore;
+
+	useEffect(() => {
+		if(activityRegistry.size <= 1)loadActivities();
+	}, [activityRegistry.size, loadActivities])
+
+	if (activityStore.loadingInitial){
+		return <LoadingComponent/>
+	}
+
 	return (
 			<Container maxWidth='lg' sx={{display: 'flex'}}>
 				<Grid item xs={8}>
-					<ActivityList activities={activities} selectActivity={selectActivity}/>
+					<ActivityList/>
 				</Grid>
 				<Grid item xs={4}>
-					{ selectedActivity && !editMode &&
-						<ActivityDetails activity={selectedActivity} cancelSelectActivity={cancelSelectActivity} openForm={openForm}/>}
+						{ selectedActivity && !editMode &&
+						<ActivityDetails />}
 						{ editMode &&
-							<ActivityForm closeForm={closeForm} activity={selectedActivity} createOrEdit={createOrEdit}/>}
+						<ActivityForm/>}
 				</Grid>
 			</Container>
 	)
-}
+})

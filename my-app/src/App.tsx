@@ -1,71 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import axios from "axios";
+import React from 'react';
 import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import { List } from '@mui/material';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import {Activity} from './app/models/activity';
 import NavBar from './app/layout/NavBar';
 import './App.css';
+import { observer } from 'mobx-react-lite';
+import HomePage from './features/home/HomePage';
 import ActivitiesDashboard from './features/Actitvities/Dashboard/ActivitiesDashboard'
+import ActivityForm from './features/Actitvities/from/ActivityForm';
+import {Route, useLocation} from 'react-router-dom';
+import ActivityDetails from './features/Actitvities/details/ActivityDetails';
 
 
 function App() {
-	const [activities, setActivities] = useState<Activity[]>([]);
-	const [selectedActivity, setSelectedActivity] = useState<Activity | undefined>(undefined);
-	const [editMode, setEditMode] = useState(false);
-
-	useEffect(() => {
-		axios.get<Activity[]>("http://localhost:5088/api/activities").then(response => {
-			console.log(response);
-			setActivities(response.data);
-		})
-	}, [])
-
-	function handleSelectedActivity(id: string) {
-		setSelectedActivity(activities.find(x => x.id === id))
-	}
-
-	function handleCancelSelectedActivity(){
-		setSelectedActivity(undefined);
-	}
-
-	function handleFormOpen(id?: string){
-		id ? handleSelectedActivity(id) : handleCancelSelectedActivity();
-		setEditMode(true);
-	}
-
-	function handleFormClose(){
-		setEditMode(false);
-	}
-
-	
-	function handleCreateOrEditActivity(activity: Activity){
-		activity.id
-			? setActivities([...activities.filter(x => x.id !== activity.id), activity])
-			: setActivities([...activities, activity]);
-		setEditMode(false);
-		setSelectedActivity(activity);
-	}
+ 
+	const location = useLocation();
 
   return (
 		<Container maxWidth="xl">
-				<NavBar openForm={handleFormOpen}/>
-				<ActivitiesDashboard 
-				 activities={activities}
-				 selectedActivity={selectedActivity} 
-				 selectActivity={handleSelectedActivity}
-				 cancelSelectActivity={handleCancelSelectedActivity}
-				 editMode={editMode}
-				 openForm={handleFormOpen}
-				 closeForm={handleFormClose}
-				 createOrEdit={handleCreateOrEditActivity}
+				<Route path="/" exact component={HomePage} />
+				<Route
+					path={'/(.+)'}
+					render={() =>(
+						<>
+							<NavBar/>
+							<Route path="/activities" exact component={ActivitiesDashboard} />
+							<Route path="/activities/:id" component={ActivityDetails} />
+							<Route key={location.key} path={["/createActiity", "/manage/:id"]} exact component={ActivityForm} />
+						</>
+					)}
 				/>
+					
 		</Container>
   );
 }
 
-export default App;
+export default observer (App);

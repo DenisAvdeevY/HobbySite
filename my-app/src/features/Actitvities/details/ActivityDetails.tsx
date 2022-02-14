@@ -5,16 +5,21 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { Activity } from '../../../app/models/activity';
+import { useStore } from '../../../app/stores/store';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
+import { useParams } from 'react-router-dom';
+import { observer } from 'mobx-react-lite';
 
-interface Props {
-	activity: Activity;
-	cancelSelectActivity: () => void;
-	openForm: (id: string) => void;
-}
+export default observer (function ActivityDetails(){
+  const {activityStore} = useStore();
+	const {selectedActivity: activity, loadActivity, loadingInitial} = activityStore;
+	const {id} = useParams<{id: string}>();
 
-export default function ActivityDetails({activity,cancelSelectActivity,openForm}: Props){
-  
+	React.useEffect(() => {
+		if(id) loadActivity(id);
+	}, [id, loadActivity]);
+
+	if(loadingInitial || !activity) return <LoadingComponent/>;
 
 	return (
 		<Card sx={{  }}>
@@ -32,9 +37,9 @@ export default function ActivityDetails({activity,cancelSelectActivity,openForm}
 			</Typography>
 		</CardContent>
 		<CardActions>
-			<Button onClick={()=>openForm(activity.id)} size="small">Edit</Button>
-			<Button onClick={cancelSelectActivity}  size="small">Cancel</Button>
+			<Button href={'/manage/'+activity.id}  size="small">Edit</Button>
+			<Button href='/activities'  size="small">Cancel</Button>
 		</CardActions>
 	</Card>
 	);
-}
+})
